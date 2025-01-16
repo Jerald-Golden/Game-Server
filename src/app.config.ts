@@ -30,8 +30,8 @@ export default config({
 
         app.use('/colyseus', monitor());
 
-        app.use('/', serveIndex(path.join(__dirname, "static"), { 'icons': true }))
-        app.use('/', express.static(path.join(__dirname, "static")));
+        app.use('/', serveIndex(path.join(__dirname, "../public"), { 'icons': true }))
+        app.use('/', express.static(path.join(__dirname, "../public")));
     },
 
 
