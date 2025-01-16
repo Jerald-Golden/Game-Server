@@ -1,12 +1,11 @@
 import config from "@colyseus/tools";
 import { monitor } from "@colyseus/monitor";
-import { playground } from "@colyseus/playground";
 import { auth } from "@colyseus/auth";
 import path from 'path';
 import serveIndex from 'serve-index';
 import express from 'express';
 
-import { StateHandlerRoom } from "./rooms/02-state-handler";
+import { StateHandlerRoom } from "./rooms/state-handler";
 
 export default config({
     options: {
@@ -25,8 +24,6 @@ export default config({
 
     initializeExpress: (app) => {
         app.use(auth.prefix, auth.routes());
-
-        app.use('/playground', playground);
 
         app.use('/colyseus', monitor());
 
