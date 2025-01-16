@@ -63,6 +63,24 @@ export class StateHandlerRoom extends Room<State> {
             this.broadcast("playerMoved", { id: client.sessionId, position: data.position, rotation: data.rotation }, { except: client });
         });
 
+        // Handle kick requests
+        this.onMessage("kick", (client: Client, data: { sessionId: string }) => {
+            const sessionIdToKick = data.sessionId;
+
+            // Example condition: Only observers can send "kick" requests
+            if (this.state.players.get(client.sessionId) === undefined) {
+                const targetClient = this.clients.find(c => c.sessionId === sessionIdToKick);
+
+                if (targetClient) {
+                    targetClient.leave(); // Disconnect the targeted client
+                    console.log(`Player ${sessionIdToKick} was kicked by ${client.sessionId}`);
+                } else {
+                    console.log(`Invalid kick request for ${sessionIdToKick}`);
+                }
+            } else {
+                console.log(`Unauthorized kick attempt by ${client.sessionId}`);
+            }
+        });
     }
 
     onJoin(client: Client, options: any) {
@@ -75,7 +93,6 @@ export class StateHandlerRoom extends Room<State> {
             console.log(`Observer ${client.sessionId} joined`);
         }
     }
-
 
     onLeave(client: Client) {
         console.log(client.sessionId, "left!");

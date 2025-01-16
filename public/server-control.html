@@ -3,6 +3,7 @@
 
 <head>
     <meta name="viewport" content="width=device-width" />
+    <title>Server-Control</title>
     <style>
         body {
             font-family: Tahoma, Geneva, sans-serif;
@@ -34,9 +35,28 @@
             border-radius: 5px;
             background: #fafafa;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .player-info {
+            max-width: 70%;
+        }
+
+        .kick-button {
+            padding: 5px 10px;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .kick-button:hover {
+            background-color: #e60000;
         }
     </style>
-    <!-- colyseus.js client -->
     <script src="https://unpkg.com/colyseus.js@^0.15.0/dist/colyseus.js"></script>
 </head>
 
@@ -56,7 +76,6 @@
         );
         let room;
 
-        // Initialize player list container
         const playersContainer = document.getElementById('players');
 
         client.joinOrCreate("state_handler", { role: "observer" }).then((roomInstance) => {
@@ -68,24 +87,29 @@
                 const playerElement = document.createElement('div');
                 playerElement.className = 'player';
                 playerElement.id = `player-${sessionId}`;
-                updatePlayerUI(playerElement, sessionId, player);
+
+                const playerInfo = document.createElement('div');
+                playerInfo.className = 'player-info';
+                updatePlayerUI(playerInfo, sessionId, player);
+
+                const kickButton = document.createElement('button');
+                kickButton.className = 'kick-button';
+                kickButton.textContent = 'Kick';
+                kickButton.onclick = () => {
+                    room.send("kick", { sessionId });
+                };
+
+                playerElement.appendChild(playerInfo);
+                playerElement.appendChild(kickButton);
                 playersContainer.appendChild(playerElement);
             }
 
             function updatePlayerUI(element, sessionId, player) {
                 element.innerHTML = `
-            <strong>Player ${sessionId}</strong><br />
-            Position: x: ${player.position.x.toFixed(
-                    2
-                )}, y: ${player.position.y.toFixed(
-                    2
-                )}, z: ${player.position.z.toFixed(2)}<br />
-            Rotation: x: ${player.rotation.x.toFixed(
-                    2
-                )}, y: ${player.rotation.y.toFixed(
-                    2
-                )}, z: ${player.rotation.z.toFixed(2)}
-          `;
+                    <strong>Player ${sessionId}</strong><br />
+                    Position: x: ${player.position.x.toFixed(2)}, y: ${player.position.y.toFixed(2)}, z: ${player.position.z.toFixed(2)}<br />
+                    Rotation: x: ${player.rotation.x.toFixed(2)}, y: ${player.rotation.y.toFixed(2)}, z: ${player.rotation.z.toFixed(2)}
+                `;
             }
 
             function removePlayerUI(sessionId) {
@@ -101,20 +125,19 @@
                 addPlayerUI(sessionId, player);
 
                 player.position.onChange(() => {
-                    const playerElement = document.getElementById(`player-${sessionId}`);
+                    const playerElement = document.getElementById(`player-${sessionId}`).querySelector('.player-info');
                     if (playerElement) {
                         updatePlayerUI(playerElement, sessionId, player);
                     }
                 });
 
                 player.rotation.onChange(() => {
-                    const playerElement = document.getElementById(`player-${sessionId}`);
+                    const playerElement = document.getElementById(`player-${sessionId}`).querySelector('.player-info');
                     if (playerElement) {
                         updatePlayerUI(playerElement, sessionId, player);
                     }
                 });
             });
-
 
             room.state.players.onRemove(function (player, sessionId) {
                 console.log('Player removed:', sessionId);
