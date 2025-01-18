@@ -19,7 +19,8 @@
             text-align: center;
         }
 
-        #player-list {
+        #player-list,
+        #chat {
             margin: 20px;
             padding: 10px;
             background: #fff;
@@ -28,20 +29,24 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
-        .player {
+        #chat {
+            margin-top: 20px;
+        }
+
+        .player,
+        .chat-message {
             margin-bottom: 10px;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
             background: #fafafa;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .player {
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        .player-info {
-            max-width: 70%;
         }
 
         .kick-button {
@@ -56,15 +61,54 @@
         .kick-button:hover {
             background-color: #e60000;
         }
+
+        #chat-messages {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        #chat-input {
+            display: flex;
+            margin-top: 10px;
+        }
+
+        #chat-input input[type="text"] {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        #chat-input button {
+            padding: 10px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #chat-input button:hover {
+            background-color: #45a049;
+        }
     </style>
     <script src="https://unpkg.com/colyseus.js@^0.15.0/dist/colyseus.js"></script>
 </head>
 
 <body>
-    <h1>Multiplayer Game - Players List</h1>
+    <h1>Multiplayer Game - Players List & Chat</h1>
     <div id="player-list">
         <strong>Connected Players:</strong>
         <div id="players"></div>
+    </div>
+    <div id="chat">
+        <strong>Chat:</strong>
+        <div id="chat-messages"></div>
+        <div id="chat-input">
+            <input type="text" id="message-input" placeholder="Type your message..." />
+            <button id="send-button">Send</button>
+        </div>
     </div>
     <script>
         const host = window.document.location.host.replace(/:.*/, '');
@@ -74,13 +118,13 @@
             host +
             (location.port ? ':' + location.port : '')
         );
-        let room;
 
         const playersContainer = document.getElementById('players');
+        const chatMessages = document.getElementById('chat-messages');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
 
-        client.joinOrCreate("state_handler", { role: "observer" }).then((roomInstance) => {
-            room = roomInstance;
-
+        client.joinOrCreate("Room_handler", { role: "observer" }).then((room) => {
             const players = {};
 
             function addPlayerUI(sessionId, player) {
@@ -90,7 +134,7 @@
 
                 const playerInfo = document.createElement('div');
                 playerInfo.className = 'player-info';
-                updatePlayerUI(playerInfo, sessionId, player);
+                updatePlayerUI(playerInfo, player);
 
                 const kickButton = document.createElement('button');
                 kickButton.className = 'kick-button';
@@ -104,9 +148,9 @@
                 playersContainer.appendChild(playerElement);
             }
 
-            function updatePlayerUI(element, sessionId, player) {
+            function updatePlayerUI(element, player) {
                 element.innerHTML = `
-                    <strong>Player ${sessionId}</strong><br />
+                    <strong>${player.name || "Unnamed Player"}</strong><br />
                     Position: x: ${player.position.x.toFixed(2)}, y: ${player.position.y.toFixed(2)}, z: ${player.position.z.toFixed(2)}<br />
                     Rotation: x: ${player.rotation.x.toFixed(2)}, y: ${player.rotation.y.toFixed(2)}, z: ${player.rotation.z.toFixed(2)}
                 `;
@@ -119,33 +163,59 @@
                 }
             }
 
+            // Handle state updates for players
             room.state.players.onAdd(function (player, sessionId) {
-                console.log('Player added:', sessionId, player);
+                console.log('player: ', player);
                 players[sessionId] = player;
                 addPlayerUI(sessionId, player);
 
-                player.position.onChange(() => {
+                player.position.onChange(function () {
                     const playerElement = document.getElementById(`player-${sessionId}`).querySelector('.player-info');
                     if (playerElement) {
-                        updatePlayerUI(playerElement, sessionId, player);
+                        updatePlayerUI(playerElement, player);
                     }
                 });
 
-                player.rotation.onChange(() => {
+                player.rotation.onChange(function () {
                     const playerElement = document.getElementById(`player-${sessionId}`).querySelector('.player-info');
                     if (playerElement) {
-                        updatePlayerUI(playerElement, sessionId, player);
+                        updatePlayerUI(playerElement, player);
                     }
                 });
             });
 
             room.state.players.onRemove(function (player, sessionId) {
-                console.log('Player removed:', sessionId);
                 delete players[sessionId];
                 removePlayerUI(sessionId);
             });
+
+            // Chat functionality
+            sendButton.addEventListener('click', () => {
+                const message = messageInput.value.trim();
+                if (message) {
+                    room.send("message", { sender: "observer", message: message });
+                    const chatMessage = document.createElement('div');
+                    chatMessage.className = 'chat-message';
+                    chatMessage.textContent = `you : ${message}`;
+                    chatMessages.appendChild(chatMessage);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    messageInput.value = '';
+                }
+            });
+
+            room.onMessage("chat", (data) => {
+                const chatMessage = document.createElement('div');
+                chatMessage.className = 'chat-message';
+                chatMessage.textContent = `${data.sender}: ${data.message}`;
+                chatMessages.appendChild(chatMessage);
+
+                // Scroll to the bottom of the chat
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            });
         });
     </script>
+
+
 </body>
 
 </html>

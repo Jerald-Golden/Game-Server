@@ -3,7 +3,7 @@ import { auth } from "@colyseus/auth";
 import path from 'path';
 import express from 'express';
 
-import { StateHandlerRoom } from "./rooms/state-handler";
+import { RoomHandler } from "./rooms/room-handler";
 
 export default config({
     options: {
@@ -12,7 +12,7 @@ export default config({
 
     initializeGameServer: (gameServer) => {
 
-        gameServer.define("state_handler", StateHandlerRoom)
+        gameServer.define("Room_handler", RoomHandler)
             .enableRealtimeListing();
 
         gameServer.onShutdown(function () {
