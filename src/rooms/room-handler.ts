@@ -129,7 +129,7 @@ export class RoomHandler extends Room<State> {
             this.state.createPlayer(client.sessionId, name);
 
             // Notify all players about the new player joining
-            this.broadcast("chat", { sender: "system", message: `${name} : joined the chat.` });
+            this.broadcast("chat", { sender: "system", message: `${name} joined the chat.` });
         } else if (options.role === "observer") {
             console.log(`Observer ${client.sessionId} added to the server control`);
         }
@@ -144,7 +144,7 @@ export class RoomHandler extends Room<State> {
 
         if (clientRole === "player") {
             // Notify all players about the player leaving
-            this.broadcast("chat", { sender: "system", message: `${name} : left the chat.` });
+            this.broadcast("chat", { sender: "system", message: `${name} left the chat.` });
 
             // Remove player from the game state
             this.state.removePlayer(client.sessionId);
