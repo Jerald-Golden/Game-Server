@@ -121,7 +121,7 @@ export class RoomHandler extends Room<State> {
         }
 
         // Store the client's name or assign a default one
-        const name = options.name || "Observer";
+        const name = options.name || "observer";
         this.clientNames.set(client.sessionId, name);
 
         if (options.role === "player") {
