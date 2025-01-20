@@ -89,7 +89,7 @@ export class RoomHandler extends Room<State> {
             this.state.movePlayer(client.sessionId, data);
 
             // Broadcast to all other players except the sender
-            this.broadcast("playerMoved", { id: client.sessionId, position: data.position, rotation: data.rotation }, { except: client });
+            this.broadcast("playerMoved", { id: client.sessionId, position: data.position, rotation: data.rotation, state: data.state }, { except: client });
         });
 
         // Handle kick requests
