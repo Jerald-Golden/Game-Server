@@ -1,6 +1,7 @@
 import config from "@colyseus/tools";
 
-import { RoomHandler } from "./rooms/room-handler";
+import { LobbyHandler } from "./handlers/lobby-handler";
+import { RoomHandler } from "./handlers/room-handler";
 
 export default config({
     options: {
@@ -8,6 +9,8 @@ export default config({
     },
 
     initializeGameServer: (gameServer) => {
+
+        gameServer.define("lobby_handler", LobbyHandler);
 
         gameServer.define("Room_handler", RoomHandler)
             .enableRealtimeListing();

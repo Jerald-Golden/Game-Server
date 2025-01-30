@@ -70,10 +70,10 @@ export class RoomHandler extends Room<State> {
     clientNames: Map<string, string> = new Map();
 
     onCreate(options: any) {
-        console.log("Room created!", options);
 
         // Initialize state
         this.setState(new State());
+        this.listing.name = options.roomData.roomName;
 
         // Handle chat messages
         this.onMessage("message", (client, data) => {
